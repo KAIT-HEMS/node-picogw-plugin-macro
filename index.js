@@ -73,13 +73,10 @@ function addModeSetHistoryEntry(newmode, result) {
 };
 
 function onProcCallGet(path, args) {
-    if (path != 'mode') {
-        const errmsg = `${path} is not defined`;
-        console.error(errmsg);
-        return {errors: [{message: 'macro: '+errmsg}]};
+    if (path != 'mode' || args == null || args.type != 'history') {
+        return {};
     }
 
-    const type = args.type;// type must be 'history'
     const mode_query = args.mode;
 
     let ret = modeSetHistory.filter((entry)=>{
