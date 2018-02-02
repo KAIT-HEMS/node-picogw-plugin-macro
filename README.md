@@ -1,0 +1,1 @@
+node-picogw-plugin-macro is a default plugin module for PicoGW, a Home Automation and Building Automation devices gateway server, developed by Kanagawa Institute of Technology, Smart House Research Center, released under MIT license. This is automatically installed when you install PicoGW.

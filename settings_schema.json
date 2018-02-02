@@ -1,0 +1,58 @@
+{
+	"title": "Macro Settings"
+	,"type": "object"
+    ,"id":"macro"
+	,"properties": {
+        "actions":{
+            "type":"object"
+            ,"properties":{
+                "on":{
+                    "title":"action_on_title"
+                    ,"type":"string"
+                    ,"format":"textarea"
+                }
+                ,"off":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+                ,"custom1":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+                ,"custom2":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+                ,"custom3":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+            }
+        }
+        ,"triggers":{
+            "type":"object"
+            ,"properties":{
+                "some_on":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+                ,"all_off":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+                ,"custom1":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+                ,"custom2":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+                ,"custom3":{
+                    "type":"string"
+                    ,"format":"textarea"
+                }
+            }
+        }
+    }
+}
