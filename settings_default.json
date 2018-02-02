@@ -1,0 +1,9 @@
+{
+	"actions": {
+		"on": "print('ON command received');\n\n// Switch on all ECHONET Lite devices\ncallProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'on'}})\n .then(resolve)\n .catch(reject);",
+		"off": "print('OFF command received');\n\n// Switch off all ECHONET Lite devices\ncallProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'off'}})\n .then(resolve)\n .catch(reject);",
+		"custom1": "// Just resolve without doing anything\nresolve({});",
+		"custom2": "// Just resolve without doing anything\nresolve({});",
+		"custom3": "// Just resolve without doing anything\nresolve({});"
+	}
+}

@@ -7,49 +7,28 @@
             "type":"object"
             ,"properties":{
                 "on":{
-                    "title":"action_on_title"
+                    "title":"POST /v1/macro/mode with body {mode:'on'} handler"
                     ,"type":"string"
                     ,"format":"textarea"
                 }
                 ,"off":{
-                    "type":"string"
+                    "title":"POST /v1/macro/mode with body {mode:'off'} handler"
+                    ,"type":"string"
                     ,"format":"textarea"
                 }
                 ,"custom1":{
-                    "type":"string"
+                    "title":"POST /v1/macro/mode with body {mode:'custom1'} handler"
+                    ,"type":"string"
                     ,"format":"textarea"
                 }
                 ,"custom2":{
-                    "type":"string"
+                    "title":"POST /v1/macro/mode with body {mode:'custom2'} handler"
+                    ,"type":"string"
                     ,"format":"textarea"
                 }
                 ,"custom3":{
-                    "type":"string"
-                    ,"format":"textarea"
-                }
-            }
-        }
-        ,"triggers":{
-            "type":"object"
-            ,"properties":{
-                "some_on":{
-                    "type":"string"
-                    ,"format":"textarea"
-                }
-                ,"all_off":{
-                    "type":"string"
-                    ,"format":"textarea"
-                }
-                ,"custom1":{
-                    "type":"string"
-                    ,"format":"textarea"
-                }
-                ,"custom2":{
-                    "type":"string"
-                    ,"format":"textarea"
-                }
-                ,"custom3":{
-                    "type":"string"
+                    "title":"POST /v1/macro/mode with body {mode:'custom3'} handler"
+                    ,"type":"string"
                     ,"format":"textarea"
                 }
             }
