@@ -3,6 +3,20 @@
 	,"type": "object"
     ,"id":"macro"
 	,"properties": {
+        "triggers":{
+            "type":"object"
+            ,"properties":{
+                "check_mode":{
+                    "title":"GET /v1/macro/mode handler"
+                    ,"type":"string"
+                    ,"format":"textarea"
+                },
+                "pollingInterval":{
+                    "title":"Polling interval in seconds"
+                    ,"type":"integer"
+                }
+            }
+        },
         "actions":{
             "type":"object"
             ,"properties":{

@@ -6,6 +6,7 @@ let localStorage;
 let modeSetHistory;
 const MODE_SET_HISTORY_ENTRY_MAX = 100;
 
+let modeCheckTimerID;
 
 module.exports = {
     init: init,
@@ -24,7 +25,26 @@ function init(pluginInterface) {
     localStorage = pi.localStorage;
 
     modeSetHistory = localStorage.getItem('modeSetHistory', []);
+
+    resetPolling();
 };
+
+function resetPolling(newInterval) {
+    if (modeCheckTimerID != null) {
+        clearInterval(modeCheckTimerID);
+    }
+    modeCheckTimerID = null;
+
+    if (newInterval == null) {
+        const settings = pi.setting.getSettings();
+        newInterval = settings.triggers.pollingInterval;
+    }
+    if (typeof newInterval == 'number') {
+        modeCheckTimerID = setInterval(()=>{
+            onProcCallGet('mode').catch((e)=>{});
+        }, newInterval * 1000);
+    }
+}
 
 /**
  * Setting value rewriting event for UI
@@ -32,6 +52,7 @@ function init(pluginInterface) {
  * @return {object} Settings to save
  */
 function onUISetSettings(newSettings) {
+    resetPolling(newSettings.triggers.pollingInterval);
     return newSettings;
 }
 
@@ -72,18 +93,53 @@ function addModeSetHistoryEntry(newmode, result) {
     localStorage.setItem('modeSetHistory', modeSetHistory);
 };
 
-function onProcCallGet(path, args) {
-    if (path != 'mode' || args == null || args.type != 'history') {
-        return {};
+function getLastMode() {
+    if (modeSetHistory.length == 0) {
+        return null;
     }
+    return modeSetHistory[0].mode;
+}
 
-    const mode_query = args.mode;
+function onProcCallGet(path, args) {
+    if (path != 'mode') {
+        return {mode: {}};
+    }
+    if (args == null) args = {};
 
-    let ret = modeSetHistory.filter((entry)=>{
-        return entry.mode == mode_query;
-    });
+    const settings = pi.setting.getSettings();
 
-    return {data: ret.slice(0, args.limit||50)};
+    switch (args.type) {
+    case 'history':
+        const ret = modeSetHistory.filter((entry)=>{
+            return entry.mode == args.mode;
+        });
+
+        return {data: ret.slice(0, args.limit||50)};
+    default:
+        return new Promise((ac, rj)=>{
+            const sandbox = {
+                resolve: (re)=>{
+                    ac({value: re, leaf: true});
+                    if (re !== getLastMode()) {
+                        addModeSetHistoryEntry(re, {value: re, leaf: true});
+                    }
+                    resetPolling();
+                },
+                reject: (e)=>{
+                    rj({errors: [e], leaf: true});
+                    // resetPolling();
+                },
+                print: log,
+                callProc: function() {
+                    return pi.client.callProc.apply(pi.client, arguments);
+                },
+            };
+
+            const context = vm.createContext(sandbox);
+            const script = new vm.Script(settings.triggers.check_mode);
+            script.runInContext(context);
+        });
+    }
 }
 
 function onProcCallPut(path, args) {
@@ -103,16 +159,17 @@ function onProcCallPut(path, args) {
         return {errors: [{message: 'macro: '+errmsg}]};
     }
 
-
     return new Promise((ac, rj)=>{
         const sandbox = {
             resolve: (re)=>{
                 ac(re);
-                addModeSetHistoryEntry(newmode, re);
+                if (newmode !== getLastMode()) {
+                    addModeSetHistoryEntry(newmode, re);
+                }
+                resetPolling();
             },
             reject: (e)=>{
                 rj(e);
-                addModeSetHistoryEntry(newmode, e);
             },
             print: log,
             callProc: function() {
