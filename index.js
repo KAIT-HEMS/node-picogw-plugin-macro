@@ -4,9 +4,12 @@ let pi;
 let log = console.log; // eslint-disable-line no-unused-vars
 let localStorage;
 let modeSetHistory;
+let periodicalLog;
 const MODE_SET_HISTORY_ENTRY_MAX = 100;
+const PERIODICAL_LOG_ENTRY_MAX = 300;
 
 let modeCheckTimerID;
+let periodicalLogTimerID;
 
 module.exports = {
     init: init,
@@ -25,26 +28,12 @@ function init(pluginInterface) {
     localStorage = pi.localStorage;
 
     modeSetHistory = localStorage.getItem('modeSetHistory', []);
+    periodicalLog = localStorage.getItem('periodicalLog', []);
 
-    resetPolling();
+    resetModePolling();
+    resetGetPeriodicalLogPolling();
 };
 
-function resetPolling(newInterval) {
-    if (modeCheckTimerID != null) {
-        clearInterval(modeCheckTimerID);
-    }
-    modeCheckTimerID = null;
-
-    if (newInterval == null) {
-        const settings = pi.setting.getSettings();
-        newInterval = settings.triggers.pollingInterval;
-    }
-    if (typeof newInterval == 'number') {
-        modeCheckTimerID = setInterval(()=>{
-            onProcCallGet('mode').catch((e)=>{});
-        }, newInterval * 1000);
-    }
-}
 
 /**
  * Setting value rewriting event for UI
@@ -52,7 +41,8 @@ function resetPolling(newInterval) {
  * @return {object} Settings to save
  */
 function onUISetSettings(newSettings) {
-    resetPolling(newSettings.triggers.pollingInterval);
+    resetModePolling(newSettings.triggers.pollingInterval);
+    resetGetPeriodicalLogPolling(newSettings.triggers.periodicalLogInterval);
     return newSettings;
 }
 
@@ -71,6 +61,118 @@ function onProcCall(method, path, args) {
     }
     return {error: `The specified method ${method} is not implemented in this plugin.`};
 }
+
+function onProcCallGet(path, args) {
+    function onMode() {
+        const settings = pi.setting.getSettings();
+        if (args == null) args = {};
+
+        switch (args.type) {
+        case 'history':
+            const ret = modeSetHistory.filter((entry)=>{
+                return entry.mode == args.mode;
+            });
+
+            return {data: ret.slice(0, args.limit||50)};
+        default:
+            return new Promise((ac, rj)=>{
+                const sandbox = {
+                    resolve: (re)=>{
+                        ac({value: re, leaf: true});
+                        if (re !== getLastMode()) {
+                            addModeSetHistoryEntry(re, {value: re, leaf: true});
+                        }
+                        resetModePolling();
+                    },
+                    reject: (e)=>{
+                        rj({errors: [e], leaf: true});
+                        // resetModePolling();
+                    },
+                    print: log,
+                    callProc: function() {
+                        return pi.client.callProc.apply(pi.client, arguments);
+                    },
+                };
+
+                const context = vm.createContext(sandbox);
+                const script = new vm.Script(settings.triggers.check_mode);
+                script.runInContext(context);
+            });
+        }
+    }
+
+
+    switch (path) {
+    case 'mode': return onMode();
+    case 'log': return {data: periodicalLog};
+    default:
+        return {mode: {}, log: {}};
+    }
+}
+
+function onProcCallPut(path, args) {
+    if (path != 'mode') {
+        const errmsg = `${path} is not defined`;
+        console.error(errmsg);
+        return {errors: [{message: 'macro: '+errmsg}]};
+    }
+
+    const newmode = args.mode;
+    const settings = pi.setting.getSettings();
+
+    const code = settings.actions[newmode];
+    if (code == null) {
+        const errmsg = `mode "${newmode}" does not exist.`;
+        console.error(errmsg);
+        return {errors: [{message: 'macro: '+errmsg}]};
+    }
+
+    return new Promise((ac, rj)=>{
+        const sandbox = {
+            resolve: (re)=>{
+                ac(re);
+                if (newmode !== getLastMode()) {
+                    addModeSetHistoryEntry(newmode, re);
+                }
+                resetModePolling();
+            },
+            reject: (e)=>{
+                rj(e);
+            },
+            print: log,
+            callProc: function() {
+                return pi.client.callProc.apply(pi.client, arguments);
+            },
+        };
+
+        const context = vm.createContext(sandbox);
+        const script = new vm.Script(code);
+        script.runInContext(context);
+    });
+}
+
+
+// ////////////////////////////////
+//     Mode change detection
+
+// Start polling for detecting mode change
+function resetModePolling(newInterval) {
+    if (modeCheckTimerID != null) {
+        clearInterval(modeCheckTimerID);
+    }
+    modeCheckTimerID = null;
+
+    if (newInterval == null) {
+        const settings = pi.setting.getSettings();
+        newInterval = settings.triggers.pollingInterval;
+    }
+    if (typeof newInterval == 'number') {
+        modeCheckTimerID = setInterval(()=>{
+            onProcCallGet('mode').catch((e)=>{});
+        }, newInterval * 1000);
+    }
+}
+
 
 function addModeSetHistoryEntry(newmode, result) {
     const id = (
@@ -100,85 +202,75 @@ function getLastMode() {
     return modeSetHistory[0].mode;
 }
 
-function onProcCallGet(path, args) {
-    if (path != 'mode') {
-        return {mode: {}};
+
+// ////////////////////////////////
+//     Periodical logging
+
+// Start polling for periodic log
+function resetGetPeriodicalLogPolling(newIntervalInMinutes) {
+    if (periodicalLogTimerID != null) {
+        clearTimeout(periodicalLogTimerID);
     }
-    if (args == null) args = {};
-
-    const settings = pi.setting.getSettings();
-
-    switch (args.type) {
-    case 'history':
-        const ret = modeSetHistory.filter((entry)=>{
-            return entry.mode == args.mode;
-        });
-
-        return {data: ret.slice(0, args.limit||50)};
-    default:
-        return new Promise((ac, rj)=>{
-            const sandbox = {
-                resolve: (re)=>{
-                    ac({value: re, leaf: true});
-                    if (re !== getLastMode()) {
-                        addModeSetHistoryEntry(re, {value: re, leaf: true});
-                    }
-                    resetPolling();
-                },
-                reject: (e)=>{
-                    rj({errors: [e], leaf: true});
-                    // resetPolling();
-                },
-                print: log,
-                callProc: function() {
-                    return pi.client.callProc.apply(pi.client, arguments);
-                },
-            };
-
-            const context = vm.createContext(sandbox);
-            const script = new vm.Script(settings.triggers.check_mode);
-            script.runInContext(context);
-        });
+    periodicalLogTimerID = null;
+    if (newIntervalInMinutes == null) {
+        const settings = pi.setting.getSettings();
+        newIntervalInMinutes = settings.triggers.periodicalLogInterval;
+    }
+    if (typeof newIntervalInMinutes == 'number') {
+        const curDate = new Date();
+        // Align by nearest hour
+        const alignedDate = new Date(
+            curDate.getFullYear(), curDate.getMonth(), curDate.getDate(), curDate.getHours());
+        const millisDiff = curDate.getTime() - alignedDate.getTime();
+        let nextTiming = 0;
+        while (nextTiming < millisDiff) {
+            nextTiming += newIntervalInMinutes * 60*1000;
+        }
+        if (nextTiming >= 60*60*1000) {
+            nextTiming = 60*60*1000;
+        }
+        periodicalLogTimerID
+            = setTimeout(runGetPeriodicalLogScript
+                , nextTiming - millisDiff + 1000 /* margin*/);
     }
 }
 
-function onProcCallPut(path, args) {
-    if (path != 'mode') {
-        const errmsg = `${path} is not defined`;
-        console.error(errmsg);
-        return {errors: [{message: 'macro: '+errmsg}]};
-    }
+function runGetPeriodicalLogScript() {
+    const sandbox = {
+        addLog: addPeriodicalLogEntry,
+        print: log,
+        callProc: function() {
+            return pi.client.callProc.apply(pi.client, arguments);
+        },
+    };
 
-    const newmode = args.mode;
+    resetGetPeriodicalLogPolling();
+
+    const context = vm.createContext(sandbox);
     const settings = pi.setting.getSettings();
+    const script = new vm.Script(settings.triggers.getPeriodicalLog);
+    script.runInContext(context);
+}
 
-    const code = settings.actions[newmode];
-    if (code == null) {
-        const errmsg = `mode "${newmode}" does not exist.`;
-        console.error(errmsg);
-        return {errors: [{message: 'macro: '+errmsg}]};
-    }
 
-    return new Promise((ac, rj)=>{
-        const sandbox = {
-            resolve: (re)=>{
-                ac(re);
-                if (newmode !== getLastMode()) {
-                    addModeSetHistoryEntry(newmode, re);
-                }
-                resetPolling();
-            },
-            reject: (e)=>{
-                rj(e);
-            },
-            print: log,
-            callProc: function() {
-                return pi.client.callProc.apply(pi.client, arguments);
-            },
-        };
+function addPeriodicalLogEntry(name, value) {
+    const id = (
+        periodicalLog.length==0
+            ? 0
+            : periodicalLog[0].meta.id + 1);
 
-        const context = vm.createContext(sandbox);
-        const script = new vm.Script(code);
-        script.runInContext(context);
+    const curDate = new Date();
+    periodicalLog.unshift({
+        created_at: curDate.toISOString(),
+        name: name,
+        value: value,
+        meta: {
+            id: id,
+            timestamp: Math.floor(curDate.getTime()/1000),
+        },
     });
+
+    periodicalLog = periodicalLog.slice(0, PERIODICAL_LOG_ENTRY_MAX);
+    localStorage.setItem('periodicalLog', periodicalLog);
 }
+

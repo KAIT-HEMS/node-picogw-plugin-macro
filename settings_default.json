@@ -1,7 +1,9 @@
 {
 	"triggers": {
-		"check_mode": "const CHECK_DEVS\n    = ['AirConditioner','GenericIllumination'] ;\nconst CHECK_PATH\n    = '/v1/echonet/(' + CHECK_DEVS.join('|') + ')_.+/OperatingState' ;\n\n// Get powers of all ECHONET Lite devices\ncallProc({method:'GET',path:CHECK_PATH})\n  .then( re=>{\n    for( const path in re ){\n      if( re[path].value == 'on' ){\n        resolve('on'); // returns 'on' mode if at least one device is on.\n        return ;\n      }\n    }\n    resolve('off'); // Otherwise the mode is 'off'\n  }).catch(reject);",
-		"pollingInterval": 300
+		"check_mode": "// It is important to call resolve( CURRENT_MODE_STRING ) or reject() within this handler.\n\n\nconst CHECK_DEVS = ['AirConditioner','GenericIllumination'] ;\nconst CHECK_PATH = '/v1/echonet/(' + CHECK_DEVS.join('|') + ')_.+/OperatingState' ;\n\n// Get powers of all ECHONET Lite devices\ncallProc({method:'GET',path:CHECK_PATH})\n  .then( re=>{\n    for( const path in re ){\n      if( re[path].value == 'on' ){\n        resolve('on'); // returns 'on' mode if at least one device is on.\n        return ;\n      }\n    }\n    resolve('off'); // Otherwise the mode is 'off'\n  }).catch(reject);",
+		"pollingInterval": 15,
+		"getPeriodicalLog": "// Logger handler does not have resolve/reject function.\n// Rather, call addLog('KEY','VALUE in string'); as many times as you want.\n\nprint('adding log(s) in macro plugin');\n\n// Check whole mode\ncallProc({method:'GET',path:'/v1/macro/mode'})\n  .then( re=>{\n    addLog('mode',re.value);\n  }).catch(e=>{});\n\n// Check server status\ncallProc({method:'GET',path:'/v1/admin/server_status/'})\n  .then( re=>{\n    addLog('server status',JSON.stringify(re.result));\n  }).catch(e=>{});\n",
+		"periodicalLogInterval": 30
 	},
 	"actions": {
 		"on": "print('ON command received');\n\n// Switch on all ECHONET Lite devices\ncallProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'on'}})\n .then(resolve)\n .catch(reject);",

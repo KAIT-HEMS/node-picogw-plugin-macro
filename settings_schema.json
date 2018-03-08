@@ -7,12 +7,21 @@
             "type":"object"
             ,"properties":{
                 "check_mode":{
-                    "title":"GET /v1/macro/mode handler"
+                    "title":"/v1/macro/mode handler"
                     ,"type":"string"
                     ,"format":"textarea"
                 },
                 "pollingInterval":{
-                    "title":"Polling interval in seconds"
+                    "title":"/v1/macro/mode check interval in SECONDS"
+                    ,"type":"integer"
+                },
+                "getPeriodicalLog":{
+                    "title":"Periodical logger to add log entries for GET /v1/macro/log"
+                    ,"type":"string"
+                    ,"format":"textarea"
+                },
+                "periodicalLogInterval":{
+                    "title":"Periodical log interval in MINUTES. Aligned with the start of hour."
                     ,"type":"integer"
                 }
             }
