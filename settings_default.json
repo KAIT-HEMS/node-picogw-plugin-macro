@@ -1,15 +1,11 @@
 {
-	"triggers": {
+	"GET": {
 		"check_mode": "// It is important to call resolve( CURRENT_MODE_STRING ) or reject() within this handler.\n\n\nconst CHECK_DEVS = ['AirConditioner','GenericIllumination'] ;\nconst CHECK_PATH = '/v1/echonet/(' + CHECK_DEVS.join('|') + ')_.+/OperatingState' ;\n\n// Get powers of all ECHONET Lite devices\ncallProc({method:'GET',path:CHECK_PATH})\n  .then( re=>{\n    for( const path in re ){\n      if( re[path].value == 'on' ){\n        resolve('on'); // returns 'on' mode if at least one device is on.\n        return ;\n      }\n    }\n    resolve('off'); // Otherwise the mode is 'off'\n  }).catch(reject);",
-		"pollingInterval": 15,
+		"modePollingInterval": 15,
 		"getPeriodicalLog": "// Logger handler does not have resolve/reject function.\n// Rather, call addLog('KEY','VALUE in string'); as many times as you want.\n\nprint('adding log(s) in macro plugin');\n\n// Check whole mode\ncallProc({method:'GET',path:'/v1/macro/mode'})\n  .then( re=>{\n    addLog('mode',re.value);\n  }).catch(e=>{});\n\n// Check server status\ncallProc({method:'GET',path:'/v1/admin/server_status/'})\n  .then( re=>{\n    addLog('server status',JSON.stringify(re.result));\n  }).catch(e=>{});\n",
 		"periodicalLogInterval": 30
 	},
-	"actions": {
-		"on": "print('ON command received');\n\n// Switch on all ECHONET Lite devices\ncallProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'on'}})\n .then(resolve)\n .catch(reject);",
-		"off": "print('OFF command received');\n\n// Switch off all ECHONET Lite devices\ncallProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'off'}})\n .then(resolve)\n .catch(reject);",
-		"custom1": "// Just resolve without doing anything\nresolve({});",
-		"custom2": "// Just resolve without doing anything\nresolve({});",
-		"custom3": "// Just resolve without doing anything\nresolve({});"
+	"PUT": {
+		"put_mode": "print( `PUT mode ${ARGS.mode}`);\n\nswitch( ARGS.mode ){\n  case 'on' : // Switch on all ECHONET Lite devices\n    callProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'on'}})\n      .then(resolve).catch(reject);\n    break ;\n\n  case 'off' : // Switch off all ECHONET Lite devices\n    callProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'off'}})\n      .then(resolve).catch(reject);\n    break ;\n\n  case 'custom1' :\n  case 'custom2' :\n  case 'custom3' :\n    resolve({message: 'No handler defined for '+ARGS.mode});\n    break ;\n  default :\n    reject({errors:[{message: 'No handler defined'}]});\n    break ;\n}"
 	}
 }

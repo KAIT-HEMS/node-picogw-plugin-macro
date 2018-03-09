@@ -1,6 +1,6 @@
 {
   "name": "picogw-plugin-macro",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Macro plugin for PicoGW",
   "main": "index.js",
   "scripts": {

@@ -8,7 +8,7 @@ let periodicalLog;
 const MODE_SET_HISTORY_ENTRY_MAX = 100;
 const PERIODICAL_LOG_ENTRY_MAX = 300;
 
-let modeCheckTimerID;
+let modePollingTimerID;
 let periodicalLogTimerID;
 
 module.exports = {
@@ -41,8 +41,8 @@ function init(pluginInterface) {
  * @return {object} Settings to save
  */
 function onUISetSettings(newSettings) {
-    resetModePolling(newSettings.triggers.pollingInterval);
-    resetGetPeriodicalLogPolling(newSettings.triggers.periodicalLogInterval);
+    resetModePolling(newSettings.GET.modePollingInterval);
+    resetGetPeriodicalLogPolling(newSettings.GET.periodicalLogInterval);
     return newSettings;
 }
 
@@ -70,7 +70,7 @@ function onProcCallGet(path, args) {
         switch (args.type) {
         case 'history':
             const ret = modeSetHistory.filter((entry)=>{
-                return entry.mode == args.mode;
+                return args.mode == null || entry.mode == args.mode;
             });
 
             return {data: ret.slice(0, args.limit||50)};
@@ -88,6 +88,7 @@ function onProcCallGet(path, args) {
                         rj({errors: [e], leaf: true});
                         // resetModePolling();
                     },
+                    addLog: addPeriodicalLogEntry,
                     print: log,
                     callProc: function() {
                         return pi.client.callProc.apply(pi.client, arguments);
@@ -95,7 +96,7 @@ function onProcCallGet(path, args) {
                 };
 
                 const context = vm.createContext(sandbox);
-                const script = new vm.Script(settings.triggers.check_mode);
+                const script = new vm.Script(settings.GET.check_mode);
                 script.runInContext(context);
             });
         }
@@ -120,15 +121,9 @@ function onProcCallPut(path, args) {
     const newmode = args.mode;
     const settings = pi.setting.getSettings();
 
-    const code = settings.actions[newmode];
-    if (code == null) {
-        const errmsg = `mode "${newmode}" does not exist.`;
-        console.error(errmsg);
-        return {errors: [{message: 'macro: '+errmsg}]};
-    }
-
     return new Promise((ac, rj)=>{
         const sandbox = {
+            ARGS: args,
             resolve: (re)=>{
                 ac(re);
                 if (newmode !== getLastMode()) {
@@ -146,7 +141,7 @@ function onProcCallPut(path, args) {
         };
 
         const context = vm.createContext(sandbox);
-        const script = new vm.Script(code);
+        const script = new vm.Script(settings.PUT.put_mode);
         script.runInContext(context);
     });
 }
@@ -157,17 +152,17 @@ function onProcCallPut(path, args) {
 
 // Start polling for detecting mode change
 function resetModePolling(newInterval) {
-    if (modeCheckTimerID != null) {
-        clearInterval(modeCheckTimerID);
+    if (modePollingTimerID != null) {
+        clearInterval(modePollingTimerID);
     }
-    modeCheckTimerID = null;
+    modePollingTimerID = null;
 
     if (newInterval == null) {
         const settings = pi.setting.getSettings();
-        newInterval = settings.triggers.pollingInterval;
+        newInterval = settings.GET.modePollingInterval;
     }
     if (typeof newInterval == 'number') {
-        modeCheckTimerID = setInterval(()=>{
+        modePollingTimerID = setInterval(()=>{
             onProcCallGet('mode').catch((e)=>{});
         }, newInterval * 1000);
     }
@@ -184,7 +179,7 @@ function addModeSetHistoryEntry(newmode, result) {
     modeSetHistory.unshift({
         created_at: curDate.toISOString(),
         mode: newmode,
-        result: result,
+        // result: result, // (Can cause big log)
         meta: {
             id: id,
             timestamp: Math.floor(curDate.getTime()/1000),
@@ -214,7 +209,7 @@ function resetGetPeriodicalLogPolling(newIntervalInMinutes) {
     periodicalLogTimerID = null;
     if (newIntervalInMinutes == null) {
         const settings = pi.setting.getSettings();
-        newIntervalInMinutes = settings.triggers.periodicalLogInterval;
+        newIntervalInMinutes = settings.GET.periodicalLogInterval;
     }
     if (typeof newIntervalInMinutes == 'number') {
         const curDate = new Date();
@@ -248,7 +243,7 @@ function runGetPeriodicalLogScript() {
 
     const context = vm.createContext(sandbox);
     const settings = pi.setting.getSettings();
-    const script = new vm.Script(settings.triggers.getPeriodicalLog);
+    const script = new vm.Script(settings.GET.getPeriodicalLog);
     script.runInContext(context);
 }
 

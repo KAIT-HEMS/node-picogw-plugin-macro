@@ -3,15 +3,15 @@
 	,"type": "object"
     ,"id":"macro"
 	,"properties": {
-        "triggers":{
+        "GET":{
             "type":"object"
             ,"properties":{
                 "check_mode":{
-                    "title":"/v1/macro/mode handler"
+                    "title":"GET /v1/macro/mode handler.\n The change of mode is stored in the plugin and can be listed by GET /v1/macro/mode?type=history[&mode=on|off|custom1..] (IFTTT format)"
                     ,"type":"string"
                     ,"format":"textarea"
                 },
-                "pollingInterval":{
+                "modePollingInterval":{
                     "title":"/v1/macro/mode check interval in SECONDS"
                     ,"type":"integer"
                 },
@@ -21,36 +21,16 @@
                     ,"format":"textarea"
                 },
                 "periodicalLogInterval":{
-                    "title":"Periodical log interval in MINUTES. Aligned with the start of hour."
+                    "title":"Periodical log interval in MINUTES. Aligned with the start of hour. Eg. 30 means checking on :0,:30 every hour. 20 means :0,:20,:40. 45 means :0 and :45."
                     ,"type":"integer"
                 }
             }
         },
-        "actions":{
+        "PUT":{
             "type":"object"
             ,"properties":{
-                "on":{
-                    "title":"POST /v1/macro/mode with body {mode:'on'} handler"
-                    ,"type":"string"
-                    ,"format":"textarea"
-                }
-                ,"off":{
-                    "title":"POST /v1/macro/mode with body {mode:'off'} handler"
-                    ,"type":"string"
-                    ,"format":"textarea"
-                }
-                ,"custom1":{
-                    "title":"POST /v1/macro/mode with body {mode:'custom1'} handler"
-                    ,"type":"string"
-                    ,"format":"textarea"
-                }
-                ,"custom2":{
-                    "title":"POST /v1/macro/mode with body {mode:'custom2'} handler"
-                    ,"type":"string"
-                    ,"format":"textarea"
-                }
-                ,"custom3":{
-                    "title":"POST /v1/macro/mode with body {mode:'custom3'} handler"
+                "put_mode":{
+                    "title":"PUT /v1/macro/mode handler"
                     ,"type":"string"
                     ,"format":"textarea"
                 }
