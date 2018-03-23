@@ -63,17 +63,20 @@ function onProcCall(method, path, args) {
 }
 
 function onProcCallGet(path, args) {
-    function onMode() {
-        const settings = pi.setting.getSettings();
-        if (args == null) args = {};
+    const settings = pi.setting.getSettings();
+    if (args == null) args = {};
 
+    function onModeHistory() {
+        const ret = modeSetHistory.filter((entry)=>{
+            return args.mode == null || entry.mode == args.mode;
+        });
+
+        return {data: ret.slice(0, args.limit||50)};
+    }
+    function onMode() {
         switch (args.type) {
         case 'history':
-            const ret = modeSetHistory.filter((entry)=>{
-                return args.mode == null || entry.mode == args.mode;
-            });
-
-            return {data: ret.slice(0, args.limit||50)};
+            return onModeHistory();
         default:
             return new Promise((ac, rj)=>{
                 const sandbox = {
@@ -105,9 +108,10 @@ function onProcCallGet(path, args) {
 
     switch (path) {
     case 'mode': return onMode();
+    case 'modeHistory': return onModeHistory();
     case 'log': return {data: periodicalLog};
     default:
-        return {mode: {}, log: {}};
+        return {mode: {}, modeHistory: {}, log: {}};
     }
 }
 
@@ -188,6 +192,8 @@ function addModeSetHistoryEntry(newmode, result) {
 
     modeSetHistory = modeSetHistory.slice(0, MODE_SET_HISTORY_ENTRY_MAX);
     localStorage.setItem('modeSetHistory', modeSetHistory);
+
+    pi.server.publish('mode', {value: newmode, leaf: true});
 };
 
 function getLastMode() {
