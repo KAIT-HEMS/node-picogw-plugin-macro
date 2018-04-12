@@ -81,14 +81,14 @@ function onProcCallGet(path, args) {
             return new Promise((ac, rj)=>{
                 const sandbox = {
                     resolve: (re)=>{
-                        ac({value: re, leaf: true});
+                        ac({value: re});
                         if (re !== getLastMode()) {
-                            addModeSetHistoryEntry(re, {value: re, leaf: true});
+                            addModeSetHistoryEntry(re, {value: re});
                         }
                         resetModePolling();
                     },
                     reject: (e)=>{
-                        rj({errors: [e], leaf: true});
+                        rj({errors: [e]});
                         // resetModePolling();
                     },
                     addLog: addPeriodicalLogEntry,
@@ -193,7 +193,7 @@ function addModeSetHistoryEntry(newmode, result) {
     modeSetHistory = modeSetHistory.slice(0, MODE_SET_HISTORY_ENTRY_MAX);
     localStorage.setItem('modeSetHistory', modeSetHistory);
 
-    pi.server.publish('mode', {value: newmode, leaf: true});
+    pi.server.publish('mode', {value: newmode});
 };
 
 function getLastMode() {
