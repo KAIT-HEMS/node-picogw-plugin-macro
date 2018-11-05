@@ -59,6 +59,7 @@ function onProcCall(method, path, args) {
     switch (method) {
     case 'GET': return onProcCallGet(path, args);
     case 'PUT': return onProcCallPut(path, args);
+    case 'DELETE': return onProcCallDelete(path, args);
     }
     return {error: `The specified method ${method} is not implemented in this plugin.`};
 }
@@ -151,6 +152,28 @@ function onProcCallPut(path, args) {
     });
 }
 
+function onProcCallDelete(path, args) {
+    const settings = pi.setting.getSettings();
+    if (args == null) args = {};
+
+    if( path == '' ){
+	localStorage.setItem('modeSetHistory', []);
+	localStorage.setItem('periodicalLog', []);
+    } else {
+	switch (path) {
+	case 'modeHistory': localStorage.setItem('modeSetHistory', []); break ;
+	case 'log': localStorage.setItem('periodicalLog', []); break ;
+	default:
+	    return {errors:[{
+		error:`Cannot delete "${path}" property`,
+		message:`Cannot delete "${path}" property`
+	    }]};
+	}
+    }
+    modeSetHistory = localStorage.getItem('modeSetHistory', []);
+    periodicalLog = localStorage.getItem('periodicalLog', []);
+    return {success:true,message:'The log data was successfully cleared.'};
+}
 
 // ////////////////////////////////
 //     Mode change detection
