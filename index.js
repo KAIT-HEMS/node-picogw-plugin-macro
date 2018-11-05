@@ -1,4 +1,5 @@
 const vm = require('vm');
+const moment = require('moment');
 
 let pi;
 let log = console.log; // eslint-disable-line no-unused-vars
@@ -181,7 +182,7 @@ function addModeSetHistoryEntry(newmode, result) {
 
     const curDate = new Date();
     modeSetHistory.unshift({
-        created_at: curDate.toISOString(),
+        created_at: moment(curDate).format('YYYY/MM/DD HH:mm:ss'),
         mode: newmode,
         // result: result, // (Can cause big log)
         meta: {
@@ -262,7 +263,7 @@ function addPeriodicalLogEntry(name, value) {
 
     const curDate = new Date();
     periodicalLog.unshift({
-        created_at: curDate.toISOString(),
+        created_at: moment(curDate).format('YYYY/MM/DD HH:mm:ss'),
         name: name,
         value: value,
         meta: {
