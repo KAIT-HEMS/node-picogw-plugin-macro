@@ -101,7 +101,7 @@ function onProcCallGet(path, args) {
                 };
 
                 const context = vm.createContext(sandbox);
-                const script = new vm.Script(settings.GET.check_mode);
+                const script = new vm.Script('(async function(){'+settings.GET.check_mode+'})()');
                 script.runInContext(context);
             });
         }
@@ -147,7 +147,7 @@ function onProcCallPut(path, args) {
         };
 
         const context = vm.createContext(sandbox);
-        const script = new vm.Script(settings.PUT.put_mode);
+        const script = new vm.Script('(async function(){'+settings.PUT.put_mode+'})()');
         script.runInContext(context);
     });
 }
@@ -273,7 +273,7 @@ function runGetPeriodicalLogScript() {
 
     const context = vm.createContext(sandbox);
     const settings = pi.setting.getSettings();
-    const script = new vm.Script(settings.GET.getPeriodicalLog);
+    const script = new vm.Script('(async function(){'+settings.GET.getPeriodicalLog+'})()');
     script.runInContext(context);
 }
 
