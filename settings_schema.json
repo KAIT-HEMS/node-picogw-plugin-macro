@@ -23,6 +23,10 @@
                 "periodicalLogInterval":{
                     "title":"Periodical log interval in MINUTES. Aligned with the start of hour. Eg. 30 means checking on :0,:30 every hour. 20 means :0,:20,:40. 45 means :0 and :45."
                     ,"type":"integer"
+                },
+                "periodicalLogEntryMax":{
+                    "title":"Number of max periodical log saved"
+                    ,"type":"integer"
                 }
             }
         },

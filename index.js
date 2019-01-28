@@ -7,7 +7,6 @@ let localStorage;
 let modeSetHistory;
 let periodicalLog;
 const MODE_SET_HISTORY_ENTRY_MAX = 100;
-const PERIODICAL_LOG_ENTRY_MAX = 300;
 
 let modePollingTimerID;
 let periodicalLogTimerID;
@@ -35,7 +34,6 @@ function init(pluginInterface) {
     resetGetPeriodicalLogPolling();
 };
 
-
 /**
  * Setting value rewriting event for UI
  * @param {object} newSettings Settings edited for UI
@@ -44,6 +42,11 @@ function init(pluginInterface) {
 function onUISetSettings(newSettings) {
     resetModePolling(newSettings.GET.modePollingInterval);
     resetGetPeriodicalLogPolling(newSettings.GET.periodicalLogInterval);
+
+    periodicalLog = periodicalLog.slice(
+	0,　newSettings.GET.periodicalLogEntryMax );
+    localStorage.setItem('periodicalLog', periodicalLog);
+
     return newSettings;
 }
 
@@ -295,7 +298,7 @@ function addPeriodicalLogEntry(name, value) {
         },
     });
 
-    periodicalLog = periodicalLog.slice(0, PERIODICAL_LOG_ENTRY_MAX);
+    periodicalLog = periodicalLog.slice(0, pi.setting.getSettings().GET.periodicalLogEntryMax);
     localStorage.setItem('periodicalLog', periodicalLog);
 }
 
