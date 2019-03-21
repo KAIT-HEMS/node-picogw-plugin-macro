@@ -44,7 +44,7 @@ function onUISetSettings(newSettings) {
     resetGetPeriodicalLogPolling(newSettings.GET.periodicalLogInterval);
 
     periodicalLog = periodicalLog.slice(
-	0,　newSettings.GET.periodicalLogEntryMax );
+	    0,　newSettings.GET.periodicalLogEntryMax );
     localStorage.setItem('periodicalLog', periodicalLog);
 
     return newSettings;
@@ -288,7 +288,8 @@ function addPeriodicalLogEntry(name, value) {
             : periodicalLog[0].meta.id + 1);
 
     const curDate = new Date();
-    periodicalLog.unshift({
+
+    const logEntry = {
         created_at: moment(curDate).format('YYYY/MM/DD HH:mm:ss'),
         name: name,
         value: value,
@@ -296,9 +297,13 @@ function addPeriodicalLogEntry(name, value) {
             id: id,
             timestamp: Math.floor(curDate.getTime()/1000),
         },
-    });
+    };
+
+    periodicalLog.unshift(logEntry);
 
     periodicalLog = periodicalLog.slice(0, pi.setting.getSettings().GET.periodicalLogEntryMax);
     localStorage.setItem('periodicalLog', periodicalLog);
+
+    pi.server.publish('log', logEntry);
 }
 
