@@ -1,12 +1,6 @@
 {
-	"GET": {
-		"check_mode": "// It is important to call resolve( CURRENT_MODE_STRING ) or reject() within this handler.\n\nconst CHECK_DEVS = ['AirConditioner','GenericIllumination'] ;\nconst CHECK_PATH = '/v1/echonet/(' + CHECK_DEVS.join('|') + ')_.+/OperatingState' ;\n\n// Get powers of all ECHONET Lite devices\nre = await callProc({method:'GET',path:CHECK_PATH}).catch(reject);\n\nfor( const path in re ){\n  if( re[path].value == 'on' ){\n    resolve('on'); // returns 'on' mode if at least one device is on.\n    return ;\n  }\n}\n\nresolve('off'); // Otherwise (Everything is off) the mode is 'off'\n",
-		"modePollingInterval": 15,
-		"getPeriodicalLog": "// Logger handler does not have resolve/reject function.\n// Rather, call addLog('KEY','VALUE in string'); as many times as you want.\n\nprint('adding log(s) in macro plugin');\n\n// Check whole mode\nlet re = await callProc({method:'GET',path:'/v1/macro/mode'}).catch(e=>{});\naddLog('mode',re.value);\n\n// Check server status\nre = await callProc({method:'GET',path:'/v1/admin/server_status/'}).catch(e=>{});\naddLog('server status',JSON.stringify(re.result));\n",
-	    "periodicalLogInterval": 30,
-	    "periodicalLogEntryMax": 300
-	},
-	"PUT": {
-		"put_mode": "print( `PUT mode ${ARGS.mode}`);\n\nswitch( ARGS.mode ){\n  case 'on' : // Switch on all ECHONET Lite devices\n    callProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'on'}})\n      .then(resolve).catch(reject);\n    break ;\n\n  case 'off' : // Switch off all ECHONET Lite devices\n    callProc({method:'PUT',path:'/v1/echonet/.+/OperatingState',args:{value:'off'}})\n      .then(resolve).catch(reject);\n    break ;\n\n  case 'custom1' :\n  case 'custom2' :\n  case 'custom3' :\n    resolve({message: 'No handler defined for '+ARGS.mode});\n    break ;\n  default :\n    reject({errors:[{message: 'No handler defined'}]});\n    break ;\n}"
-	}
+	"macroScript": "// It is important to call resolve() or reject() within this handler.\n\nconst CHECK_DEVS = ['AirConditioner','GenericIllumination'] ;\n// Use regular expression to check multiple devices at once\nconst CHECK_PATH = '/v1/echonet/(' + CHECK_DEVS.join('|') + ')_.+/operatingstate' ;\n\n// Get powers of ECHONET Lite air conditioners and lights\nre = await callProc({method:'GET',path:CHECK_PATH}).catch(reject);\n\nfor( const path in re ){\n  if( re[path].value == 'on' ){\n    resolve('on'); // returns 'on' mode if at least one device is on.\n    return ;\n  }\n}\n\nresolve('off'); // Otherwise (Everything is off) the mode is 'off'\n",
+	"pollScript": "// pollScript handler does not have resolve/reject function.\n// Rather, call addLog('KEY','VALUE in string'); as many times as you want.\n\nprint('adding log(s) in macro plugin');\n\n// Check whole mode\nlet re = await callProc({method:'GET',path:'/v1/macro/run'}).catch(e=>{});\naddLog('macro execution result',re.value);\n\n// Check server status\nre = await callProc({method:'GET',path:'/v1/admin/server_status/'}).catch(e=>{});\naddLog('server status',JSON.stringify(re.result));\n",
+	"pollInterval": 30,
+	"pollLogEntryMax": 300
 }

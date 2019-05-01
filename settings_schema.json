@@ -3,42 +3,23 @@
 	,"type": "object"
     ,"id":"macro"
 	,"properties": {
-        "GET":{
-            "type":"object"
-            ,"properties":{
-                "check_mode":{
-                    "title":"GET /v1/macro/mode handler.\n The change of mode is stored in the plugin and can be listed by GET /v1/macro/mode?type=history[&mode=on|off|custom1..] (IFTTT format)"
-                    ,"type":"string"
-                    ,"format":"textarea"
-                },
-                "modePollingInterval":{
-                    "title":"/v1/macro/mode check interval in SECONDS"
-                    ,"type":"integer"
-                },
-                "getPeriodicalLog":{
-                    "title":"Periodical logger to add log entries for GET /v1/macro/log"
-                    ,"type":"string"
-                    ,"format":"textarea"
-                },
-                "periodicalLogInterval":{
-                    "title":"Periodical log interval in MINUTES. Aligned with the start of hour. Eg. 30 means checking on :0,:30 every hour. 20 means :0,:20,:40. 45 means :0 and :45."
-                    ,"type":"integer"
-                },
-                "periodicalLogEntryMax":{
-                    "title":"Number of max periodical log saved"
-                    ,"type":"integer"
-                }
-            }
+        "macroScript":{
+            "title":"Macro script that is activated by 'run' call that can add log entries for GET /v1/macro/log. arguments, callProc(), addLog(), resolve(), reject(), print() are customized methods/values"
+            ,"type":"string"
+            ,"format":"textarea"
         },
-        "PUT":{
-            "type":"object"
-            ,"properties":{
-                "put_mode":{
-                    "title":"PUT /v1/macro/mode handler"
-                    ,"type":"string"
-                    ,"format":"textarea"
-                }
-            }
+        "pollScript":{
+            "title":"Periodically run script that can add log entries for GET /v1/macro/log. callProc(), addLog(), print() are customized methods"
+            ,"type":"string"
+            ,"format":"textarea"
+        },
+        "pollInterval":{
+            "type":"integer"
+            ,"title":"Script polling interval in MINUTES. Aligned with the start of hour. Eg. 30 means checking on :0,:30 every hour. 20 means :0,:20,:40. 45 means :0 and :45."
+        },
+        "pollLogEntryMax":{
+            "type":"integer"
+            ,"title":"Number of max log saved"
         }
     }
 }
