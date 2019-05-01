@@ -4,7 +4,7 @@
     ,"id":"macro"
 	,"properties": {
         "macroScript":{
-            "title":"Macro script that is activated by 'run' call that can add log entries for GET /v1/macro/log. arguments, callProc(), addLog(), resolve(), reject(), print() are customized methods/values"
+            "title":"Macro script that is activated by 'run' call that can add log entries for GET /v1/macro/log. getArgs(), callProc(), addLog(), resolve(), reject(), print() are customized methods/values"
             ,"type":"string"
             ,"format":"textarea"
         },
