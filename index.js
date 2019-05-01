@@ -71,8 +71,8 @@ function onProcCallGet(path, args) {
             resolve: (re)=>{ ac({value: re}); },
             reject: (e)=>{ rj({errors: [e]}); },
             addLog: addPollLogEntry,
-            arguments:args,
-            print: log,
+            getArgs:()=>args,
+            print: console.log,
             callProc: function() {
                 return pi.client.callProc.apply(pi.client, arguments);
             },
