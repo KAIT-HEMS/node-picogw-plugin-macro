@@ -35,10 +35,10 @@ function init(pluginInterface) {
  * @return {object} Settings to save
  */
 function onUISetSettings(newSettings) {
-    resetPolling(newSettings.pollInterval);
+    resetPolling(newSettings.Periodical.pollInterval);
 
     pollLog = pollLog.slice(
-	    0,　newSettings.pollLogEntryMax );
+	    0,　newSettings.Periodical.pollLogEntryMax );
     localStorage.setItem('pollLog', pollLog);
 
     return newSettings;
@@ -68,7 +68,7 @@ function onProcCallGet(path, args) {
     case 'log': return {data: pollLog};
     case 'run': return new Promise((ac, rj)=>{
         const sandbox = {
-            resolve: (re)=>{ ac({value: re}); },
+            resolve: (re)=>{ac({value: re}); },
             reject: (e)=>{ rj({errors: [e]}); },
             addLog: addPollLogEntry,
             getArgs:()=>args,
@@ -79,7 +79,9 @@ function onProcCallGet(path, args) {
         };
 
         const context = vm.createContext(sandbox);
-        const script = new vm.Script('(async function(){'+settings.macroScript+'})()');
+        const script = new vm.Script('(async function(){'
+            +settings.OnDemand.code
+            +"\nresolve({success:true,message:'The code ended without resolve/reject.'})})()");
         script.runInContext(context);
     });
     default:
@@ -118,7 +120,7 @@ function resetPolling(newIntervalInMinutes) {
     pollTimerID = null;
     if (newIntervalInMinutes == null) {
         const settings = pi.setting.getSettings();
-        newIntervalInMinutes = settings.pollInterval;
+        newIntervalInMinutes = settings.Periodical.pollInterval;
     }
     if (typeof newIntervalInMinutes == 'number') {
         const curDate = new Date();
@@ -142,7 +144,7 @@ function resetPolling(newIntervalInMinutes) {
 function runPollScript() {
     const sandbox = {
         addLog: addPollLogEntry,
-        print: log,
+        print: console.log,
         callProc: function() {
             return pi.client.callProc.apply(pi.client, arguments);
         },
@@ -152,7 +154,7 @@ function runPollScript() {
 
     const context = vm.createContext(sandbox);
     const settings = pi.setting.getSettings();
-    const script = new vm.Script('(async function(){'+settings.pollScript+'})()');
+    const script = new vm.Script('(async function(){'+settings.Periodical.code+"\n})()");
     script.runInContext(context);
 }
 
@@ -169,7 +171,7 @@ function addPollLogEntry(name, value) {
 
     pollLog.unshift(logEntry);
 
-    pollLog = pollLog.slice(0, pi.setting.getSettings().pollLogEntryMax);
+    pollLog = pollLog.slice(0, pi.setting.getSettings().Periodical.pollLogEntryMax);
     localStorage.setItem('pollLog', pollLog);
 
     pi.server.publish('log', logEntry);
