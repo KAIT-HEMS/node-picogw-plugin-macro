@@ -60,6 +60,8 @@ function onProcCall(method, path, args) {
     return {error: `The specified method ${method} is not implemented in this plugin.`};
 }
 
+let global = {};
+
 function onProcCallGet(path, args) {
     const settings = pi.setting.getSettings();
     if (args == null) args = {};
@@ -71,6 +73,7 @@ function onProcCallGet(path, args) {
             resolve: (re)=>{ac({value: re}); },
             reject: (e)=>{ rj({errors: [e]}); },
             addLog: addPollLogEntry,
+            global:global,
             getArgs:()=>args,
             print: console.log,
             callProc: function() {
@@ -122,7 +125,7 @@ function resetPolling(newIntervalInMinutes) {
         const settings = pi.setting.getSettings();
         newIntervalInMinutes = settings.Periodical.pollInterval;
     }
-    if (typeof newIntervalInMinutes == 'number') {
+    if (typeof newIntervalInMinutes == 'number' && newIntervalInMinutes > 0 ) {
         const curDate = new Date();
         // Align by nearest hour
         const alignedDate = new Date(
@@ -145,6 +148,7 @@ function runPollScript() {
     const sandbox = {
         addLog: addPollLogEntry,
         print: console.log,
+        global:global,
         callProc: function() {
             return pi.client.callProc.apply(pi.client, arguments);
         },
@@ -176,4 +180,3 @@ function addPollLogEntry(name, value) {
 
     pi.server.publish('log', logEntry);
 }
-

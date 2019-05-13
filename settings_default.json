@@ -4,7 +4,7 @@
 	},
 	"Periodical": {
 		"code": "// pollScript handler does not have resolve/reject function.\n// Rather, call addLog('KEY','VALUE in string'); as many times as you want.\n\nprint('adding log(s) in macro plugin');\n\n// Check whole mode\nlet re = await callProc({method:'GET',path:'/v1/macro/run'}).catch(e=>{});\naddLog('macro execution result',re.value);\n\n// Check server status\nre = await callProc({method:'GET',path:'/v1/admin/server_status/'}).catch(e=>{});\naddLog('server status',JSON.stringify(re.result));\n",
-		"pollInterval": 30,
+		"pollInterval": -1,
 		"pollLogEntryMax": 300
 	}
 }
