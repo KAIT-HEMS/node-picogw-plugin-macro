@@ -35,7 +35,10 @@ function init(pluginInterface) {
  * @return {object} Settings to save
  */
 function onUISetSettings(newSettings) {
-    resetPolling(newSettings.Periodical.pollInterval);
+    if(newSettings.Periodical.pollInterval != null )
+        newSettings.Periodical.pollInterval = newSettings.Periodical.pollInterval.trim();
+
+    resetPolling(newSettings.Periodical.pollInterval.trim());
 
     pollLog = pollLog.slice(
 	    0,　newSettings.Periodical.pollLogEntryMax );
@@ -116,16 +119,28 @@ function onProcCallDelete(path, args) {
 //     Periodical logging
 
 // Start polling for periodic log
-function resetPolling(newIntervalInMinutes) {
+function resetPolling(newInterval) {
     if (pollTimerID != null) {
         clearTimeout(pollTimerID);
     }
     pollTimerID = null;
-    if (newIntervalInMinutes == null) {
+    if (newInterval == null) {
         const settings = pi.setting.getSettings();
-        newIntervalInMinutes = settings.Periodical.pollInterval;
+        newInterval = settings.Periodical.pollInterval;
+        if( newInterval == null )
+            newInterval = -1;
     }
-    if (typeof newIntervalInMinutes == 'number' && newIntervalInMinutes > 0 ) {
+
+    if (typeof newInterval === 'string'){
+        if( newInterval.slice(-2) === 'ms' )
+            newInterval = parseInt(newInterval.slice(0,-2));
+        else if( newInterval.slice(-1) === 's' )
+            newInterval = parseInt(newInterval.slice(0,-1))*1000;
+        else
+            newInterval = parseInt(newInterval)*60*1000;
+    }
+
+    if (typeof newInterval == 'number' && newInterval > 0 ) {
         const curDate = new Date();
         // Align by nearest hour
         const alignedDate = new Date(
@@ -133,7 +148,7 @@ function resetPolling(newIntervalInMinutes) {
         const millisDiff = curDate.getTime() - alignedDate.getTime();
         let nextTiming = 0;
         while (nextTiming < millisDiff) {
-            nextTiming += newIntervalInMinutes * 60*1000;
+            nextTiming += newInterval;
         }
         if (nextTiming >= 60*60*1000) {
             nextTiming = 60*60*1000;

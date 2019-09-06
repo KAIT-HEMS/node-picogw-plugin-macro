@@ -24,8 +24,8 @@
                     ,"format":"textarea"
                 },
                 "pollInterval":{
-                    "type":"integer"
-                    ,"title":"Script polling interval in MINUTES. -1 disables polling. Aligned with the start of hour. Eg. 30 means checking on :0,:30 every hour. 20 means :0,:20,:40. 45 means :0 and :45."
+                    "type":"string"
+                    ,"title":"Script polling interval in MINUTES. -1 disables polling. Aligned with the start of hour. Eg. 30 means checking on :0,:30 every hour. 20 means :0,:20,:40. 45 means :0 and :45. If you need more frequent polling, try adding 's' for seconds or 'ms' for milliseconds to the end of the number."
                 },
                 "pollLogEntryMax":{
                     "type":"integer"
