@@ -178,8 +178,8 @@ function runPollScript() {
 
     const context = vm.createContext(sandbox);
     const settings = pi.setting.getSettings();
-    //const script = new vm.Script('(async function(){\n'+settings.Periodical.code+"\n__end();})()");
-    const script = new vm.Script('(async function(){ await (async function(){let __end = null;\n'+settings.Periodical.code+"})();\n__end();})()");
+    const script = new vm.Script('(async function(){\n'+settings.Periodical.code+"\n__end();})()");
+    //const script = new vm.Script('(async function(){ await (async function(){let __end = null;\n'+settings.Periodical.code+"})();\n__end();})()");
     script.runInContext(context);
 }
 
