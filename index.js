@@ -65,6 +65,7 @@ function onProcCall(method, path, args) {
 
 let global = {};
 
+
 function onProcCallGet(path, args) {
     const settings = pi.setting.getSettings();
     if (args == null) args = {};
@@ -79,6 +80,7 @@ function onProcCallGet(path, args) {
             global:global,
             getArgs:()=>args,
             print: console.log,
+            wait:function (t){return new Promise(  (ac,rj)=>{setTimeout(ac,t);}  );},
             callProc: function() {
                 return pi.client.callProc.apply(pi.client, arguments);
             },
@@ -153,9 +155,10 @@ function resetPolling(newInterval) {
         if (nextTiming >= 60*60*1000) {
             nextTiming = 60*60*1000;
         }
+
         pollTimerID
             = setTimeout(runPollScript
-                , nextTiming - millisDiff + 1000 /* margin*/);
+                , nextTiming - millisDiff + 300 /* margin*/);
     }
 }
 
@@ -164,16 +167,19 @@ function runPollScript() {
         addLog: addPollLogEntry,
         print: console.log,
         global:global,
+        __end:function(){resetPolling();}, // Schedule next poll
+        wait:function (t){return new Promise(  (ac,rj)=>{setTimeout(ac,t);}  );},
         callProc: function() {
             return pi.client.callProc.apply(pi.client, arguments);
         },
     };
 
-    resetPolling();
+    //resetPolling();
 
     const context = vm.createContext(sandbox);
     const settings = pi.setting.getSettings();
-    const script = new vm.Script('(async function(){'+settings.Periodical.code+"\n})()");
+    //const script = new vm.Script('(async function(){\n'+settings.Periodical.code+"\n__end();})()");
+    const script = new vm.Script('(async function(){ await (async function(){let __end = null;\n'+settings.Periodical.code+"})();\n__end();})()");
     script.runInContext(context);
 }
 
