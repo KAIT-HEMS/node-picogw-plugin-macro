@@ -77,6 +77,12 @@ function onProcCallGet(path, args) {
             resolve: (re)=>{ac({value: re}); },
             reject: (e)=>{ rj({errors: [e]}); },
             addLog: addPollLogEntry,
+            publish: function(key,obj){
+                if( typeof key != 'string' || key.trim().length==0 || typeof obj != 'object'){
+                    return console.error('macro plugin > publish() is called with illegal parameter(s)');
+                }
+                pi.server.publish(key,obj);
+            },
             global:global,
             getArgs:()=>args,
             print: console.log,
@@ -165,6 +171,12 @@ function resetPolling(newInterval) {
 function runPollScript() {
     const sandbox = {
         addLog: addPollLogEntry,
+        publish: function(key,obj){
+            if( typeof key != 'string' || key.trim().length==0 || typeof obj != 'object'){
+                return console.error('macro plugin > publish() is called with illegal parameter(s)');
+            }
+            pi.server.publish(key,obj);
+        },
         print: console.log,
         global:global,
         __end:function(){resetPolling();}, // Schedule next poll

@@ -8,7 +8,7 @@
             ,"type":"object"
             ,"properties": {
                 "code":{
-                    "title":"Macro script that is triggered by 'GET /v1/macro/run' call that can add log entries for GET /v1/macro/log. GET parameters can be processed. getArgs(), callProc(), addLog(), resolve(), reject(), print() are customized methods"
+                    "title":"Macro script that is triggered by 'GET /v1/macro/run' call that can add log entries for GET /v1/macro/log. GET parameters can be processed. getArgs(), callProc(), addLog(), publish(), resolve(), reject(), print() are customized methods"
                     ,"type":"string"
                     ,"format":"textarea"
                 }
@@ -19,7 +19,7 @@
             ,"type":"object"
             ,"properties":{
                 "code":{
-                    "title":"Periodically run script that can add log entries for GET /v1/macro/log. callProc(), addLog(), print() are customized methods"
+                    "title":"Periodically run script that can add log entries for GET /v1/macro/log. callProc(), addLog(), publish(), print() are customized methods"
                     ,"type":"string"
                     ,"format":"textarea"
                 },
